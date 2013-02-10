@@ -1,0 +1,327 @@
+-+- ABDAY_1
+defined: 1
+value: 14
+---
+-+- ABDAY_2
+defined: 1
+value: 15
+---
+-+- ABDAY_3
+defined: 1
+value: 16
+---
+-+- ABDAY_4
+defined: 1
+value: 17
+---
+-+- ABDAY_5
+defined: 1
+value: 18
+---
+-+- ABDAY_6
+defined: 1
+value: 19
+---
+-+- ABDAY_7
+defined: 1
+value: 20
+---
+-+- ABMON_1
+defined: 1
+value: 33
+---
+-+- ABMON_10
+defined: 1
+value: 42
+---
+-+- ABMON_11
+defined: 1
+value: 43
+---
+-+- ABMON_12
+defined: 1
+value: 44
+---
+-+- ABMON_2
+defined: 1
+value: 34
+---
+-+- ABMON_3
+defined: 1
+value: 35
+---
+-+- ABMON_4
+defined: 1
+value: 36
+---
+-+- ABMON_5
+defined: 1
+value: 37
+---
+-+- ABMON_6
+defined: 1
+value: 38
+---
+-+- ABMON_7
+defined: 1
+value: 39
+---
+-+- ABMON_8
+defined: 1
+value: 40
+---
+-+- ABMON_9
+defined: 1
+value: 41
+---
+-+- ALT_DIGITS
+defined: 1
+value: 49
+---
+-+- AM_STR
+defined: 1
+value: 5
+---
+-+- CHAR_MAX
+defined: 1
+value: 127
+---
+-+- CODESET
+defined: 1
+value: 0
+---
+-+- CRNCYSTR
+defined: 1
+value: 56
+---
+-+- DAY_1
+defined: 1
+value: 7
+---
+-+- DAY_2
+defined: 1
+value: 8
+---
+-+- DAY_3
+defined: 1
+value: 9
+---
+-+- DAY_4
+defined: 1
+value: 10
+---
+-+- DAY_5
+defined: 1
+value: 11
+---
+-+- DAY_6
+defined: 1
+value: 12
+---
+-+- DAY_7
+defined: 1
+value: 13
+---
+-+- D_FMT
+defined: 1
+value: 2
+---
+-+- D_T_FMT
+defined: 1
+value: 1
+---
+-+- ERA
+defined: 1
+value: 45
+---
+-+- ERA_D_FMT
+defined: 1
+value: 46
+---
+-+- ERA_D_T_FMT
+defined: 1
+value: 47
+---
+-+- ERA_T_FMT
+defined: 1
+value: 48
+---
+-+- LC_ADDRESS
+defined: 0
+---
+-+- LC_ALL
+defined: 1
+value: 0
+---
+-+- LC_COLLATE
+defined: 1
+value: 1
+---
+-+- LC_CTYPE
+defined: 1
+value: 2
+---
+-+- LC_IDENTIFICATION
+defined: 0
+---
+-+- LC_MAX
+defined: 0
+---
+-+- LC_MEASUREMENT
+defined: 0
+---
+-+- LC_MESSAGES
+defined: 1
+value: 6
+---
+-+- LC_MIN
+defined: 0
+---
+-+- LC_MONETARY
+defined: 1
+value: 3
+---
+-+- LC_NAME
+defined: 0
+---
+-+- LC_NUMERIC
+defined: 1
+value: 4
+---
+-+- LC_PAPER
+defined: 0
+---
+-+- LC_TELEPHONE
+defined: 0
+---
+-+- LC_TIME
+defined: 1
+value: 5
+---
+-+- MON_1
+defined: 1
+value: 21
+---
+-+- MON_10
+defined: 1
+value: 30
+---
+-+- MON_11
+defined: 1
+value: 31
+---
+-+- MON_12
+defined: 1
+value: 32
+---
+-+- MON_2
+defined: 1
+value: 22
+---
+-+- MON_3
+defined: 1
+value: 23
+---
+-+- MON_4
+defined: 1
+value: 24
+---
+-+- MON_5
+defined: 1
+value: 25
+---
+-+- MON_6
+defined: 1
+value: 26
+---
+-+- MON_7
+defined: 1
+value: 27
+---
+-+- MON_8
+defined: 1
+value: 28
+---
+-+- MON_9
+defined: 1
+value: 29
+---
+-+- NOEXPR
+defined: 1
+value: 53
+---
+-+- PM_STR
+defined: 1
+value: 6
+---
+-+- RADIXCHAR
+defined: 1
+value: 50
+---
+-+- THOUSEP
+defined: 1
+value: 51
+---
+-+- T_FMT
+defined: 1
+value: 3
+---
+-+- T_FMT_AMPM
+defined: 1
+value: 4
+---
+-+- YESEXPR
+defined: 1
+value: 52
+---
+-+- _DATE_FMT
+defined: 0
+---
+-+- lconv
+align: 8
+size: 96
+fldofs decimal_point: 0
+fldsize decimal_point: 8
+fldofs thousands_sep: 8
+fldsize thousands_sep: 8
+fldofs grouping: 16
+fldsize grouping: 8
+fldofs int_curr_symbol: 24
+fldsize int_curr_symbol: 8
+fldofs currency_symbol: 32
+fldsize currency_symbol: 8
+fldofs mon_decimal_point: 40
+fldsize mon_decimal_point: 8
+fldofs mon_thousands_sep: 48
+fldsize mon_thousands_sep: 8
+fldofs mon_grouping: 56
+fldsize mon_grouping: 8
+fldofs positive_sign: 64
+fldsize positive_sign: 8
+fldofs negative_sign: 72
+fldsize negative_sign: 8
+fldofs int_frac_digits: 80
+fldsize int_frac_digits: 1
+fldunsigned int_frac_digits: 0
+fldofs frac_digits: 81
+fldsize frac_digits: 1
+fldunsigned frac_digits: 0
+fldofs p_cs_precedes: 82
+fldsize p_cs_precedes: 1
+fldunsigned p_cs_precedes: 0
+fldofs p_sep_by_space: 83
+fldsize p_sep_by_space: 1
+fldunsigned p_sep_by_space: 0
+fldofs n_cs_precedes: 84
+fldsize n_cs_precedes: 1
+fldunsigned n_cs_precedes: 0
+fldofs n_sep_by_space: 85
+fldsize n_sep_by_space: 1
+fldunsigned n_sep_by_space: 0
+fldofs p_sign_posn: 86
+fldsize p_sign_posn: 1
+fldunsigned p_sign_posn: 0
+fldofs n_sign_posn: 87
+fldsize n_sign_posn: 1
+fldunsigned n_sign_posn: 0
+---

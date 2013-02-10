@@ -1,0 +1,14 @@
+-+- UTSNAME
+align: 1
+size: 1280
+fldofs sysname: 0
+fldsize sysname: 256
+fldofs nodename: 256
+fldsize nodename: 256
+fldofs release: 512
+fldsize release: 256
+fldofs version: 768
+fldsize version: 256
+fldofs machine: 1024
+fldsize machine: 256
+---
