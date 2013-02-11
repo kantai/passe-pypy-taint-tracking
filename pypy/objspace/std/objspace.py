@@ -491,6 +491,8 @@ class StdObjSpace(ObjSpace, DescrOperation):
             raise OperationError(self.w_ValueError,
                                  self.wrap("Expected tuple of length 3"))
         return self.int_w(l_w[0]), self.int_w(l_w[1]), self.int_w(l_w[2])
+    def newbool(self, b):
+        return W_BoolObject(b)
 
     def is_true(self, w_obj):
         # a shortcut for performance

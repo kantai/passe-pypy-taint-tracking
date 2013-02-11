@@ -16,6 +16,7 @@ class TaintModule(MixedModule):
     
     interpleveldefs = {
         "get_taint" : "interp_taint.get_taint",
+        "get_control_taint" : "interp_taint.get_control_taint",
         "clear_taint" : "interp_taint.clear_taint",
         "add_taint" : "interp_taint.add_taint",
     }

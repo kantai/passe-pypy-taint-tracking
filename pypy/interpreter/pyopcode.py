@@ -24,13 +24,21 @@ def merge_taints(*w_args):
     return set.union(*[w_obj.gettaint_unwrapped()
                        for w_obj in w_args])
 
+def checked_settaint(w_obj, space, taints):
+    if w_obj == space.w_False:
+        w_obj = space.newbool(False)
+    elif w_obj == space.w_True:
+        w_obj = space.newbool(True)
+    w_obj.settaint(space, taints)
+    return w_obj
+
 def unaryoperation(operationname):
     """NOT_RPYTHON"""
     def opimpl(self, *ignored):
         operation = getattr(self.space, operationname)
         w_1 = self.popvalue()
         w_result = operation(w_1)
-        w_result.settaint(self.space, w_1.gettaint_unwrapped())
+        w_result = checked_settaint(w_result, self.space, w_1.gettaint_unwrapped())
         self.pushvalue(w_result)
     opimpl.unaryop = operationname
 
@@ -43,7 +51,7 @@ def binaryoperation(operationname):
         w_2 = self.popvalue()
         w_1 = self.popvalue()
         w_result = operation(w_1, w_2)
-        w_result.settaint(self.space, merge_taints(w_1, w_2))
+        w_result = checked_settaint(w_result, self.space, merge_taints(w_1, w_2))
         self.pushvalue(w_result)
     opimpl.binop = operationname
 
@@ -432,7 +440,7 @@ class __extend__(pyframe.PyFrame):
         w_obj = self.popvalue()
         w_result = self.space.getslice(w_obj, w_start, w_end)
         taints = merge_taints(w_start, w_end, w_obj)
-        w_result.settaint(self.space, taints)
+        w_result = checked_settaint(w_result, self.space, taints)
         self.pushvalue(w_result)
 
     def SLICE_0(self, oparg, next_instr):
@@ -805,7 +813,7 @@ class __extend__(pyframe.PyFrame):
         for i, attr in unrolling_compare_dispatch_table:
             if i == testnum:
                 w_result = getattr(self, attr)(w_1, w_2)
-                w_result.settaint(self.space, merge_taints(w_1, w_2))
+                w_result = checked_settaint(w_result, self.space, merge_taints(w_1, w_2))
                 break
         else:
             raise BytecodeCorruption, "bad COMPARE_OP oparg"
@@ -876,18 +884,30 @@ class __extend__(pyframe.PyFrame):
 
     def POP_JUMP_IF_FALSE(self, target, next_instr):
         w_value = self.popvalue()
+        val_taints = w_value.gettaint_unwrapped()
+        if len(val_taints) > 0:
+            self.taint_space.add_taints(self.last_instr, 
+                                        val_taints)
         if not self.space.is_true(w_value):
             return target
         return next_instr
 
     def POP_JUMP_IF_TRUE(self, target, next_instr):
         w_value = self.popvalue()
+        val_taints = w_value.gettaint_unwrapped()
+        if len(val_taints) > 0:
+            self.taint_space.add_taints(self.last_instr, 
+                                        val_taints)
         if self.space.is_true(w_value):
             return target
         return next_instr
 
     def JUMP_IF_FALSE_OR_POP(self, target, next_instr):
         w_value = self.peekvalue()
+        val_taints = w_value.gettaint_unwrapped()
+        if len(val_taints) > 0:
+            self.taint_space.add_taints(self.last_instr, 
+                                        val_taints)
         if not self.space.is_true(w_value):
             return target
         self.popvalue()
@@ -895,6 +915,10 @@ class __extend__(pyframe.PyFrame):
 
     def JUMP_IF_TRUE_OR_POP(self, target, next_instr):
         w_value = self.peekvalue()
+        val_taints = w_value.gettaint_unwrapped()
+        if len(val_taints) > 0:
+            self.taint_space.add_taints(self.last_instr, 
+                                        val_taints)
         if self.space.is_true(w_value):
             return target
         self.popvalue()
@@ -1005,7 +1029,7 @@ class __extend__(pyframe.PyFrame):
                                                           args)
         else:
             w_result = self.space.call_args(w_function, args)
-        w_result.settaint(self.space, merge_taints(*arguments))
+        w_result = checked_settaint(w_result, self.space, merge_taints(*(arguments + [w_result])))
         self.pushvalue(w_result)
 
     def CALL_FUNCTION(self, oparg, next_instr):
@@ -1112,12 +1136,22 @@ class __extend__(pyframe.CPythonFrame):
 
     def JUMP_IF_FALSE(self, stepby, next_instr):
         w_cond = self.peekvalue()
+        val_taints = w_cond.gettaint_unwrapped()
+        if len(val_taints) > 0:
+            self.taint_space.add_taints(self.last_instr, 
+                                        val_taints)
+
         if not self.space.is_true(w_cond):
             next_instr += stepby
         return next_instr
 
     def JUMP_IF_TRUE(self, stepby, next_instr):
         w_cond = self.peekvalue()
+        val_taints = w_cond.gettaint_unwrapped()
+        if len(val_taints) > 0:
+            self.taint_space.add_taints(self.last_instr, 
+                                        val_taints)
+
         if self.space.is_true(w_cond):
             next_instr += stepby
         return next_instr

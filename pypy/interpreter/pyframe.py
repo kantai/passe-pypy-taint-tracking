@@ -22,6 +22,26 @@ POP_BLOCK END_FINALLY'''.split():
     g[op] = stdlib_opcode.opmap[op]
 HAVE_ARGUMENT = stdlib_opcode.HAVE_ARGUMENT
 
+class TaintSpace(object):
+    def __init__(self, frame, parent = None):
+        self.frame = frame
+        self.taints_map = {} 
+        self.parent = parent
+        # maps (frame.pycode.co_code offset) to 
+        #  set of taints.
+    def add_taints(self, instr_offset, taints):
+        self.taints_map[instr_offset] = taints # TODO: think about overwrite....
+    def atomic_get_taints(self):
+        vals = self.taints_map.values()
+        if len(vals) == 0:
+            return set()
+        return set.union(*vals)
+    def get_taints(self):
+        if self.parent is None:
+            return self.atomic_get_taints()
+        else:
+            return set.union(self.atomic_get_taints(), self.parent.get_taints())
+
 class PyFrame(eval.Frame):
     """Represents a frame for a regular Python function
     that needs to be interpreted.
@@ -134,6 +154,11 @@ class PyFrame(eval.Frame):
 
     def run(self):
         """Start this frame's execution."""
+        f_back = ExecutionContext.getnextframe_nohidden(self)        
+        if f_back:
+            self.taint_space = TaintSpace(self, f_back.taint_space)
+        else:
+            self.taint_space = TaintSpace(self)
         if self.getcode().co_flags & pycode.CO_GENERATOR:
             from pypy.interpreter.generator import GeneratorIterator
             return self.space.wrap(GeneratorIterator(self))

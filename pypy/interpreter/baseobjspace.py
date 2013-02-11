@@ -722,10 +722,11 @@ class ObjSpace(object):
             return None
 
     def newbool(self, b):
-        if b:
-            return self.w_True
-        else:
-            return self.w_False
+        raise AttributeError()
+#        if b:
+#            return self.w_True
+#        else:
+#            return self.w_False
 
     def new_interned_w_str(self, w_s):
         s = self.str_w(w_s)
