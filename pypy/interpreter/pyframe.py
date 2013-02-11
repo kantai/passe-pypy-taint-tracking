@@ -154,7 +154,8 @@ class PyFrame(eval.Frame):
 
     def run(self):
         """Start this frame's execution."""
-        f_back = ExecutionContext.getnextframe_nohidden(self)        
+        ec = self.space.getexecutioncontext()
+        f_back = ec.gettopframe()
         if f_back:
             self.taint_space = TaintSpace(self, f_back.taint_space)
         else:
