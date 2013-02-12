@@ -332,7 +332,7 @@ rffi_setbuf = rffi.llexternal("setbuf", [rffi.CCHARP,rffi.CCHARP], lltype.Void)
 rffi_fclose = rffi.llexternal("fclose", [rffi.CCHARP], rffi.INT)
 
 class CffiFileObj(object):
-    _immutable_ = True
+#    _immutable_ = True
     def __init__(self, fd, mode):
         self.llf = rffi_fdopen(fd, mode)
         if not self.llf:

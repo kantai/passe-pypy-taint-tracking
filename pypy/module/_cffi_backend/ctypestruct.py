@@ -155,7 +155,7 @@ class W_CTypeUnion(W_CTypeStructOrUnion):
 
 
 class W_CField(Wrappable):
-    _immutable_ = True
+#    _immutable_ = True
 
     BS_REGULAR     = -1
     BS_EMPTY_ARRAY = -2

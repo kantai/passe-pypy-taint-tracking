@@ -55,7 +55,7 @@ def cpython_code_signature(code):
 
 class PyCode(eval.Code):
     "CPython-style code objects."
-    _immutable_ = True
+#    _immutable_ = True
     _immutable_fields_ = ["co_consts_w[*]", "co_names_w[*]", "co_varnames[*]",
                           "co_freevars[*]", "co_cellvars[*]"]
 

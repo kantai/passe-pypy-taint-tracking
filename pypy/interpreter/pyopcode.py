@@ -18,11 +18,13 @@ from rpython.rlib.debug import check_nonneg
 from pypy.tool.stdlib_opcode import (bytecode_spec,
                                      unrolling_all_opcode_descs)
 
-def merge_taints(*w_args):
+def merge_taints(w_args):
+    r_val = {}
     if len(w_args) == 0:
-        return set()
-    return set.union(*[w_obj.gettaint_unwrapped()
-                       for w_obj in w_args])
+        return r_val
+    for w_obj in w_args:
+        r_val.update(w_obj.gettaint_unwrapped())
+    return r_val
 
 def checked_settaint(w_obj, space, taints):
     if w_obj == space.w_False:
@@ -51,7 +53,8 @@ def binaryoperation(operationname):
         w_2 = self.popvalue()
         w_1 = self.popvalue()
         w_result = operation(w_1, w_2)
-        w_result = checked_settaint(w_result, self.space, merge_taints(w_1, w_2))
+        taints = merge_taints([w_1, w_2])
+        w_result = checked_settaint(w_result, self.space, taints)
         self.pushvalue(w_result)
     opimpl.binop = operationname
 
@@ -439,7 +442,7 @@ class __extend__(pyframe.PyFrame):
     def slice(self, w_start, w_end):
         w_obj = self.popvalue()
         w_result = self.space.getslice(w_obj, w_start, w_end)
-        taints = merge_taints(w_start, w_end, w_obj)
+        taints = merge_taints([w_start, w_end, w_obj])
         w_result = checked_settaint(w_result, self.space, taints)
         self.pushvalue(w_result)
 
@@ -813,7 +816,8 @@ class __extend__(pyframe.PyFrame):
         for i, attr in unrolling_compare_dispatch_table:
             if i == testnum:
                 w_result = getattr(self, attr)(w_1, w_2)
-                w_result = checked_settaint(w_result, self.space, merge_taints(w_1, w_2))
+                taints = merge_taints([w_1, w_2])
+                w_result = checked_settaint(w_result, self.space, taints)
                 break
         else:
             raise BytecodeCorruption, "bad COMPARE_OP oparg"
@@ -1029,7 +1033,9 @@ class __extend__(pyframe.PyFrame):
                                                           args)
         else:
             w_result = self.space.call_args(w_function, args)
-        w_result = checked_settaint(w_result, self.space, merge_taints(*(arguments + [w_result])))
+        w_args = list(arguments)
+        w_args.append(w_result)
+        w_result = checked_settaint(w_result, self.space, merge_taints(w_args))
         self.pushvalue(w_result)
 
     def CALL_FUNCTION(self, oparg, next_instr):
@@ -1219,14 +1225,14 @@ class SuspendedUnroller(Wrappable):
                 WHY_CONTINUE,   SContinueLoop
                 WHY_YIELD       not needed
     """
-    _immutable_ = True
+#    _immutable_ = True
     def nomoreblocks(self):
         raise BytecodeCorruption("misplaced bytecode - should not return")
 
 class SReturnValue(SuspendedUnroller):
     """Signals a 'return' statement.
     Argument is the wrapped object to return."""
-    _immutable_ = True
+#    _immutable_ = True
     kind = 0x01
     def __init__(self, w_returnvalue):
         self.w_returnvalue = w_returnvalue
@@ -1236,7 +1242,7 @@ class SReturnValue(SuspendedUnroller):
 class SApplicationException(SuspendedUnroller):
     """Signals an application-level exception
     (i.e. an OperationException)."""
-    _immutable_ = True
+#    _immutable_ = True
     kind = 0x02
     def __init__(self, operr):
         self.operr = operr
@@ -1245,14 +1251,14 @@ class SApplicationException(SuspendedUnroller):
 
 class SBreakLoop(SuspendedUnroller):
     """Signals a 'break' statement."""
-    _immutable_ = True
+#    _immutable_ = True
     kind = 0x04
 SBreakLoop.singleton = SBreakLoop()
 
 class SContinueLoop(SuspendedUnroller):
     """Signals a 'continue' statement.
     Argument is the bytecode position of the beginning of the loop."""
-    _immutable_ = True
+#    _immutable_ = True
     kind = 0x08
     def __init__(self, jump_to):
         self.jump_to = jump_to
@@ -1262,7 +1268,7 @@ class FrameBlock(object):
     """Abstract base class for frame blocks from the blockstack,
     used by the SETUP_XXX and POP_BLOCK opcodes."""
 
-    _immutable_ = True
+#    _immutable_ = True
 
     def __init__(self, frame, handlerposition, previous):
         self.handlerposition = handlerposition
@@ -1301,7 +1307,7 @@ class FrameBlock(object):
 class LoopBlock(FrameBlock):
     """A loop block.  Stores the end-of-loop pointer in case of 'break'."""
 
-    _immutable_ = True
+#    _immutable_ = True
     _opname = 'SETUP_LOOP'
     handling_mask = SBreakLoop.kind | SContinueLoop.kind
 
@@ -1323,7 +1329,7 @@ class LoopBlock(FrameBlock):
 class ExceptBlock(FrameBlock):
     """An try:except: block.  Stores the position of the exception handler."""
 
-    _immutable_ = True
+#    _immutable_ = True
     _opname = 'SETUP_EXCEPT'
     handling_mask = SApplicationException.kind
 
@@ -1347,7 +1353,7 @@ class ExceptBlock(FrameBlock):
 class FinallyBlock(FrameBlock):
     """A try:finally: block.  Stores the position of the exception handler."""
 
-    _immutable_ = True
+#    _immutable_ = True
     _opname = 'SETUP_FINALLY'
     handling_mask = -1     # handles every kind of SuspendedUnroller
 
@@ -1362,7 +1368,7 @@ class FinallyBlock(FrameBlock):
 
 class WithBlock(FinallyBlock):
 
-    _immutable_ = True
+#    _immutable_ = True
 
     def handle(self, frame, unroller):
         if isinstance(unroller, SApplicationException):

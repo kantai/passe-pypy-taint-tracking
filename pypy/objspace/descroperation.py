@@ -249,7 +249,7 @@ class DescrOperation(object):
         # Note there is no check for bool here because the only possible
         # instances of bool are w_False and w_True, which are checked above.
         if space.is_w(w_restype, booltype):
-            return w_res.boolval # TODO: blanks hack HACK HACK...
+            return space.is_true(w_res) # TODO: blanks hack HACK HACK...
         elif space.is_w(w_restype, space.w_int):
             return space.int_w(w_res) != 0
         else:

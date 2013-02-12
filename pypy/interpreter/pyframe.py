@@ -24,7 +24,7 @@ HAVE_ARGUMENT = stdlib_opcode.HAVE_ARGUMENT
 
 class TaintSpace(object):
     def __init__(self, frame, parent = None):
-        self.frame = frame
+#        self.frame = frame
         self.taints_map = {} 
         self.parent = parent
         # maps (frame.pycode.co_code offset) to 
@@ -33,14 +33,18 @@ class TaintSpace(object):
         self.taints_map[instr_offset] = taints # TODO: think about overwrite....
     def atomic_get_taints(self):
         vals = self.taints_map.values()
-        if len(vals) == 0:
-            return set()
-        return set.union(*vals)
+        d = {}
+        for taint_l in vals:
+            d.update(taint_l) # hmm.
+        return d
     def get_taints(self):
         if self.parent is None:
             return self.atomic_get_taints()
         else:
-            return set.union(self.atomic_get_taints(), self.parent.get_taints())
+            self_taints = self.atomic_get_taints()
+            par_taints = self.parent.get_taints()
+            self_taints.update(par_taints)
+            return self_taints
 
 class PyFrame(eval.Frame):
     """Represents a frame for a regular Python function

@@ -9,7 +9,7 @@ from pypy.interpreter.baseobjspace import Wrappable
 class Code(Wrappable):
     """A code is a compiled version of some source code.
     Abstract base class."""
-    _immutable_ = True
+#    _immutable_ = True
     hidden_applevel = False
 
     # n >= 0 : arity

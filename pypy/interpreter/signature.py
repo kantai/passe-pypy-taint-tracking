@@ -1,7 +1,7 @@
 from rpython.rlib import jit
 
 class Signature(object):
-    _immutable_ = True
+#    _immutable_ = True
     _immutable_fields_ = ["argnames[*]"]
     __slots__ = ("argnames", "varargname", "kwargname")
 

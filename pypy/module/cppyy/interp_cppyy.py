@@ -100,7 +100,7 @@ def register_class(space, w_pycppclass):
 
 
 class W_CPPLibrary(Wrappable):
-    _immutable_ = True
+#    _immutable_ = True
 
     def __init__(self, space, cdll):
         self.cdll = cdll
@@ -121,7 +121,7 @@ class CPPMethod(object):
     _attrs_ = ['space', 'scope', 'index', 'cppmethod', 'arg_defs', 'args_required',
                'args_expected', 'converters', 'executor', '_funcaddr', 'cif_descr',
                'uses_local']
-    _immutable_ = True
+#    _immutable_ = True
 
     def __init__(self, space, containing_scope, method_index, arg_defs, args_required):
         self.space = space
@@ -366,7 +366,7 @@ class CPPFunction(CPPMethod):
     all the needed functionality, by allowing the C++ this pointer to be null
     in the call. An optimization is expected there, however."""
 
-    _immutable_ = True
+#    _immutable_ = True
 
     def __repr__(self):
         return "CPPFunction: %s" % self.signature()
@@ -377,7 +377,7 @@ class CPPConstructor(CPPMethod):
     it allocates memory for the newly constructed object and sets ownership
     to Python."""
 
-    _immutable_ = True
+#    _immutable_ = True
 
     def call(self, cppthis, args_w):
         newthis = capi.c_allocate(self.scope)
@@ -399,7 +399,7 @@ class CPPSetItem(CPPMethod):
     operator[](int). The former function takes an extra argument to assign to
     the return type of the latter."""
 
-    _immutable_ = True
+#    _immutable_ = True
 
     def call(self, cppthis, args_w):
         end = len(args_w)-1

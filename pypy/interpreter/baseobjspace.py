@@ -29,28 +29,23 @@ class W_Root(object):
     __slots__ = ('taints')
     _settled_ = True
     user_overridden_class = False
+    def __new__(clz, *args, **kwargs):
+        inst = super(W_Root, clz).__new__(clz, *args, **kwargs)
+        inst.taints = {} # dictionary of (taint) -> 1
+        return inst
 
     def gettaint(self, space):
-        if not hasattr(self, 'taints'):
-            setattr(self, 'taints', set())
-        return space.wrap(self.taints)
+        return space.newlist([space.newint(z) for z in self.taints.keys()])
     def gettaint_unwrapped(self):
-        if not hasattr(self, 'taints'):
-            setattr(self, 'taints', set())
         return self.taints
     def cleartaint(self, space):
-        if not hasattr(self, 'taints'):
-            setattr(self, 'taints', set())
-        self.taints.intersection_update([])
+        self.taints.clear()
         return None
     def addtaint(self, space, w_int):
-        if not hasattr(self, 'taints'):
-            setattr(self, 'taints', set())
-        self.taints.add(space.unwrap(w_int))
+        self.taints[space.int_w(w_int)] = 1
         return None
     def settaint(self, space, taints):
-        if not hasattr(self, 'taints'):
-            setattr(self, 'taints', set())
+        self.taints.clear()
         self.taints.update(taints)
 
     def getdict(self, space):
