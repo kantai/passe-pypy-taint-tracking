@@ -35,16 +35,24 @@ class W_Root(object):
         return inst
 
     def gettaint(self, space):
+        if not self.taints:
+            return space.newlist([])
         return space.newlist([space.newint(z) for z in self.taints.keys()])
     def gettaint_unwrapped(self):
+        if not self.taints:
+            return {}
         return self.taints
     def cleartaint(self, space):
+        if not self.taints:
+            return
         self.taints.clear()
-        return None
     def addtaint(self, space, w_int):
+        if not self.taints:
+            self.taints = {}
         self.taints[space.int_w(w_int)] = 1
-        return None
     def settaint(self, space, taints):
+        if not self.taints:
+            self.taints = {}
         self.taints.clear()
         self.taints.update(taints)
 
