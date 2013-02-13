@@ -193,7 +193,7 @@ otherwise."""
 def str_upper__String(space, w_self):
     self = w_self._value
     x = space.wrap(self.upper())
-    return checked_settaint(x, space, w_self.gettaint_unwrapped()))
+    return checked_settaint(x, space, w_self.gettaint_unwrapped())
 
 def str_lower__String(space, w_self):
     self = w_self._value
