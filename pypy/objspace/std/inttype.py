@@ -162,13 +162,17 @@ def descr__new__(space, w_inttype, w_x, w_base=None):
             raise OperationError(space.w_OverflowError,
                                  space.wrap(
                 "long int too large to convert to int"))
+        w_longval.settaint(space,  w_value.gettaint_unwrapped())
         return w_longval
     elif space.is_w(w_inttype, space.w_int):
         # common case
-        return wrapint(space, value)
+        r_val = wrapint(space, value)
+        r_val.settaint(space,  w_value.gettaint_unwrapped())
+        return r_val
     else:
         w_obj = space.allocate_instance(W_IntObject, w_inttype)
         W_IntObject.__init__(w_obj, value)
+        w_obj.settaint(space,  w_value.gettaint_unwrapped())        
         return w_obj
 
 def descr_get_numerator(space, w_obj):

@@ -1033,9 +1033,9 @@ class __extend__(pyframe.PyFrame):
                                                           args)
         else:
             w_result = self.space.call_args(w_function, args)
-        w_args = list(arguments)
-        w_args.append(w_result)
-        w_result = checked_settaint(w_result, self.space, merge_taints(w_args))
+#        w_args = list(arguments)
+#        w_args.append(w_result)
+#        w_result = checked_settaint(w_result, self.space, merge_taints(w_args))
         self.pushvalue(w_result)
 
     def CALL_FUNCTION(self, oparg, next_instr):

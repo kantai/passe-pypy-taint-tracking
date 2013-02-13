@@ -1,6 +1,7 @@
 from pypy.interpreter.error import OperationError
 from pypy.objspace.std import newformat
 from pypy.objspace.std.inttype import wrapint
+from pypy.interpreter.pyopcode import merge_taints, checked_settaint
 from pypy.objspace.std.model import registerimplementation, W_Object
 from pypy.objspace.std.multimethod import FailedToImplementArgs
 from pypy.objspace.std.noneobject import W_NoneObject
@@ -73,7 +74,8 @@ registerimplementation(W_IntObject)
 def repr__Int(space, w_int1):
     a = w_int1.intval
     res = str(a)
-    return space.wrap(res)
+    z = space.wrap(res)
+    return checked_settaint(z, space, merge_taints([w_int1]))
 
 str__Int = repr__Int
 
@@ -321,7 +323,8 @@ def int__Int(space, w_int1):
     if space.is_w(space.type(w_int1), space.w_int):
         return w_int1
     a = w_int1.intval
-    return wrapint(space, a)
+    x = wrapint(space, a)
+    return checked_settaint(x, space, merge_taints([w_int1]))
 get_integer = int__Int
 pos__Int = int__Int
 trunc__Int = int__Int
@@ -332,16 +335,20 @@ def index__Int(space, w_int1):
 def float__Int(space, w_int1):
     a = w_int1.intval
     x = float(a)
-    return space.newfloat(x)
+    z = space.newfloat(x)
+    return checked_settaint(z, space, merge_taints([w_int1]))
 
 def oct__Int(space, w_int1):
-    return space.wrap(oct(w_int1.intval))
+    z = space.wrap(oct(w_int1.intval))
+    return checked_settaint(z, space, merge_taints([w_int1]))
 
 def hex__Int(space, w_int1):
-    return space.wrap(hex(w_int1.intval))
+    z = space.wrap(hex(w_int1.intval))
+    return checked_settaint(z, space, merge_taints([w_int1]))
 
 def getnewargs__Int(space, w_int1):
-    return space.newtuple([wrapint(space, w_int1.intval)])
+    z = space.newtuple([wrapint(space, w_int1.intval)])
+    return checked_settaint(z, space, merge_taints([w_int1]))
 
 
 register_all(vars())

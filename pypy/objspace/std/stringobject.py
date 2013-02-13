@@ -2,6 +2,7 @@ from pypy.objspace.std.model import registerimplementation, W_Object
 from pypy.objspace.std.register_all import register_all
 from pypy.objspace.std.multimethod import FailedToImplement
 from pypy.interpreter.error import OperationError, operationerrfmt
+from pypy.interpreter.pyopcode import merge_taints, checked_settaint
 from pypy.interpreter import gateway
 from rpython.rlib.rarithmetic import ovfcheck
 from rpython.rlib.objectmodel import we_are_translated, compute_hash, specialize
@@ -191,11 +192,13 @@ otherwise."""
 
 def str_upper__String(space, w_self):
     self = w_self._value
-    return space.wrap(self.upper())
+    x = space.wrap(self.upper())
+    return checked_settaint(x, space, merge_taints([w_str]))
 
 def str_lower__String(space, w_self):
     self = w_self._value
-    return space.wrap(self.lower())
+    x = space.wrap(self.lower())
+    return checked_settaint(x, space, merge_taints([w_str]))
 
 def str_swapcase__String(space, w_self):
     self = w_self._value
@@ -816,7 +819,8 @@ def str_zfill__String_ANY(space, w_self, w_width):
 def hash__String(space, w_str):
     s = w_str._value
     x = compute_hash(s)
-    return wrapint(space, x)
+    z = wrapint(space, x)
+    return checked_settaint(z, space, merge_taints([w_str]))
 
 def lt__String_String(space, w_str1, w_str2):
     s1 = w_str1._value
@@ -927,12 +931,14 @@ def add__String_String(space, w_left, w_right):
     return joined2(space, left, right)
 
 def len__String(space, w_str):
-    return space.wrap(len(w_str._value))
+    r_val = space.wrap(len(w_str._value))
+    return checked_settaint(r_val, space, merge_taints([w_str]))
 
 def str__String(space, w_str):
     if type(w_str) is W_StringObject:
         return w_str
-    return wrapstr(space, w_str._value)
+    r_val = wrapstr(space, w_str._value)
+    return checked_settaint(r_val, space, merge_taints([w_str]))
 
 def ord__String(space, w_str):
     u_str = w_str._value
@@ -941,7 +947,8 @@ def ord__String(space, w_str):
             space.w_TypeError,
             "ord() expected a character, but string "
             "of length %d found", len(u_str))
-    return space.wrap(ord(u_str[0]))
+    r_val = space.wrap(ord(u_str[0]))
+    return checked_settaint(r_val, space, merge_taints([w_str]))
 
 def getnewargs__String(space, w_str):
     return space.newtuple([wrapstr(space, w_str._value)])
