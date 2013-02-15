@@ -247,7 +247,7 @@ pypy_optiondescription = OptionDescription("objspace", "Object Space Options", [
                    default=False),
         BoolOption("withliststrategies",
                    "enable optimized ways to store lists of primitives ",
-                   default=True),
+                   default=False),
 
         BoolOption("withtypeversion",
                    "version type objects when changing them",
@@ -328,7 +328,7 @@ def set_pypy_opt_level(config, level):
         config.objspace.std.suggest(optimized_list_getitem=True)
         config.objspace.std.suggest(getattributeshortcut=True)
         #config.objspace.std.suggest(newshortcut=True)
-        config.objspace.std.suggest(withspecialisedtuple=True)
+#        config.objspace.std.suggest(withspecialisedtuple=True)
         config.objspace.std.suggest(withidentitydict=True)
         #if not IS_64_BITS:
         #    config.objspace.std.suggest(withsmalllong=True)

@@ -1,6 +1,7 @@
 from pypy.interpreter.error import OperationError, operationerrfmt
 from pypy.interpreter.gateway import interp2app, unwrap_spec, WrappedDefault
 from pypy.interpreter import unicodehelper
+from pypy.interpreter.pyopcode import merge_taints, checked_settaint
 from pypy.objspace.std.stdtypedef import StdTypeDef, SMM
 from pypy.objspace.std.register_all import register_all
 from pypy.objspace.std.basestringtype import basestring_typedef
@@ -208,14 +209,19 @@ def encode_object(space, w_object, encoding, errors):
             if encoding == 'ascii':
                 u = space.unicode_w(w_object)
                 eh = unicodehelper.encode_error_handler(space)
-                return space.wrap(unicode_encode_ascii(
+                w_r = space.wrap(unicode_encode_ascii(
                         u, len(u), None, errorhandler=eh))
+                return checked_settaint(w_r, space, 
+                                        w_object.gettaint_unwrapped())
+
             if encoding == 'utf-8':
                 u = space.unicode_w(w_object)
                 eh = unicodehelper.encode_error_handler(space)
-                return space.wrap(unicode_encode_utf_8(
+                w_r = space.wrap(unicode_encode_utf_8(
                         u, len(u), None, errorhandler=eh,
                         allow_surrogates=True))
+                return checked_settaint(w_r, space, 
+                                        w_object.gettaint_unwrapped())
         from pypy.module._codecs.interp_codecs import lookup_codec
         w_encoder = space.getitem(lookup_codec(space, encoding), space.wrap(0))
     if errors is None:
@@ -228,8 +234,7 @@ def encode_object(space, w_object, encoding, errors):
         raise operationerrfmt(space.w_TypeError,
             "encoder did not return an string object (type '%s')",
             space.type(w_retval).getname(space))
-    return w_retval
-
+    return checked_settaint(w_retval, space, w_object.gettaint_unwrapped())
 def decode_object(space, w_obj, encoding, errors):
     if encoding is None:
         encoding = getdefaultencoding(space)
@@ -238,14 +243,17 @@ def decode_object(space, w_obj, encoding, errors):
             # XXX error handling
             s = space.bufferstr_w(w_obj)
             eh = unicodehelper.decode_error_handler(space)
-            return space.wrap(str_decode_ascii(
+            w_retval = space.wrap(str_decode_ascii(
                     s, len(s), None, final=True, errorhandler=eh)[0])
+            return checked_settaint(w_retval, space, w_obj.gettaint_unwrapped())
         if encoding == 'utf-8':
             s = space.bufferstr_w(w_obj)
             eh = unicodehelper.decode_error_handler(space)
-            return space.wrap(str_decode_utf_8(
+            w_retval = space.wrap(str_decode_utf_8(
                     s, len(s), None, final=True, errorhandler=eh,
                     allow_surrogates=True)[0])
+            return checked_settaint(w_retval, space, w_obj.gettaint_unwrapped())
+
     w_codecs = space.getbuiltinmodule("_codecs")
     w_decode = space.getattr(w_codecs, space.wrap("decode"))
     if errors is None:
@@ -253,7 +261,7 @@ def decode_object(space, w_obj, encoding, errors):
     else:
         w_retval = space.call_function(w_decode, w_obj, space.wrap(encoding),
                                        space.wrap(errors))
-    return w_retval
+    return checked_settaint(w_retval, space, w_obj.gettaint_unwrapped())
 
 
 def unicode_from_encoded_object(space, w_obj, encoding, errors):
@@ -262,6 +270,7 @@ def unicode_from_encoded_object(space, w_obj, encoding, errors):
         raise operationerrfmt(space.w_TypeError,
             "decoder did not return an unicode object (type '%s')",
             space.type(w_retval).getname(space))
+
     return w_retval
 
 def unicode_from_object(space, w_obj):
@@ -290,13 +299,17 @@ def unicode_from_string(space, w_str):
     encoding = getdefaultencoding(space)
     from pypy.objspace.std.unicodeobject import W_UnicodeObject
     if encoding != 'ascii':
-        return unicode_from_encoded_object(space, w_str, encoding, "strict")
+        w_r = unicode_from_encoded_object(space, w_str, encoding, "strict")
+        return checked_settaint(w_r, space, w_str.gettaint_unwrapped())
+
     s = space.str_w(w_str)
     try:
-        return W_UnicodeObject(s.decode("ascii"))
+        w_r = W_UnicodeObject(s.decode("ascii"))
+        return checked_settaint(w_r, space, w_str.gettaint_unwrapped())
     except UnicodeDecodeError:
         # raising UnicodeDecodeError is messy, "please crash for me"
-        return unicode_from_encoded_object(space, w_str, "ascii", "strict")
+        w_r = unicode_from_encoded_object(space, w_str, "ascii", "strict")
+        return checked_settaint(w_r, space, w_str.gettaint_unwrapped())
 
 def unicode_decode__unitypedef_ANY_ANY(space, w_unicode, w_encoding=None,
                                        w_errors=None):

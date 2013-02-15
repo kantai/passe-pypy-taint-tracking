@@ -214,7 +214,8 @@ def str_swapcase__String(space, w_self):
         else:
             builder.append(ch)
 
-    return space.wrap(builder.build())
+    x = space.wrap(builder.build())
+    return checked_settaint(x, space, w_self.gettaint_unwrapped())
 
 
 def str_capitalize__String(space, w_self):
@@ -236,7 +237,8 @@ def str_capitalize__String(space, w_self):
             else:
                 builder.append(ch)
 
-    return space.wrap(builder.build())
+    x = space.wrap(builder.build())
+    return checked_settaint(x, space, w_self.gettaint_unwrapped())
 
 def str_title__String(space, w_self):
     input = w_self._value
@@ -254,7 +256,8 @@ def str_title__String(space, w_self):
 
         prev_letter = ch
 
-    return space.wrap(builder.build())
+    x = space.wrap(builder.build())
+    return checked_settaint(x, space, w_self.gettaint_unwrapped())
 
 def str_split__String_None_ANY(space, w_self, w_none, w_maxsplit=-1):
     maxsplit = space.int_w(w_maxsplit)
@@ -281,12 +284,14 @@ def str_split__String_None_ANY(space, w_self, w_none, w_maxsplit=-1):
             maxsplit -= 1   # NB. if it's already < 0, it stays < 0
 
         # the word is value[i:j]
-        res.append(value[i:j])
-
+        x = space.wrap(value[i:j])
+        x = checked_settaint(x, space, w_self.gettaint_unwrapped())
+        res.append(x)
+        
         # continue to look from the character following the space after the word
         i = j + 1
 
-    return space.newlist_str(res)
+    return space.newlist(res)
 
 def str_split__String_String_ANY(space, w_self, w_by, w_maxsplit=-1):
     maxsplit = space.int_w(w_maxsplit)
@@ -309,13 +314,19 @@ def str_split__String_String_ANY(space, w_self, w_by, w_maxsplit=-1):
             prev = value.rfind(by, 0, end)
             start = prev + 1
             assert start >= 0
-            res[count] = value[start:end]
+            x = space.wrap(value[start:end])
+            x = checked_settaint(x, space, w_self.gettaint_unwrapped())
+            res[count] = x
             count -= 1
             end = prev
     else:
-        res = split(value, by, maxsplit)
+        res = []
+        for x in split(value, by, maxsplit):
+            z = space.wrap(x)
+            z = checked_settaint(z, space, w_self.gettaint_unwrapped())
+            res.append(z)
 
-    return space.newlist_str(res)
+    return space.newlist(res)
 
 def str_rsplit__String_None_ANY(space, w_self, w_none, w_maxsplit=-1):
     maxsplit = space.int_w(w_maxsplit)
@@ -350,7 +361,8 @@ def str_rsplit__String_None_ANY(space, w_self, w_none, w_maxsplit=-1):
         i = j - 1
 
     res_w.reverse()
-    return space.newlist(res_w)
+    x = space.newlist(res_w)
+    return checked_settaint(x, space, w_self.gettaint_unwrapped())
 
 def make_rsplit_with_delim(funcname, sliced):
     from rpython.tool.sourcetools import func_with_new_name
@@ -473,17 +485,20 @@ def _convert_idx_params(space, w_self, w_start, w_end, upper_bound=False):
 def contains__String_String(space, w_self, w_sub):
     self = w_self._value
     sub = w_sub._value
-    return space.newbool(self.find(sub) >= 0)
+    v = space.newbool(self.find(sub) >= 0)
+    return checked_settaint(v, space, merge_taints([w_self, w_sub]))
 
 def str_find__String_String_ANY_ANY(space, w_self, w_sub, w_start, w_end):
     (self, start, end) =  _convert_idx_params(space, w_self, w_start, w_end)
     res = self.find(w_sub._value, start, end)
-    return space.wrap(res)
+    v = space.wrap(res)
+    return checked_settaint(v, space, merge_taints([w_self, w_sub]))
 
 def str_rfind__String_String_ANY_ANY(space, w_self, w_sub, w_start, w_end):
     (self, start, end) =  _convert_idx_params(space, w_self, w_start, w_end)
     res = self.rfind(w_sub._value, start, end)
-    return space.wrap(res)
+    v = space.wrap(res)
+    return checked_settaint(v, space, merge_taints([w_self, w_sub]))
 
 def str_partition__String_String(space, w_self, w_sub):
     self = w_self._value
@@ -522,7 +537,8 @@ def str_index__String_String_ANY_ANY(space, w_self, w_sub, w_start, w_end):
         raise OperationError(space.w_ValueError,
                              space.wrap("substring not found in string.index"))
 
-    return space.wrap(res)
+    v = space.wrap(res)
+    return checked_settaint(v, space, merge_taints([w_self, w_sub]))
 
 
 def str_rindex__String_String_ANY_ANY(space, w_self, w_sub, w_start, w_end):
@@ -532,7 +548,8 @@ def str_rindex__String_String_ANY_ANY(space, w_self, w_sub, w_start, w_end):
         raise OperationError(space.w_ValueError,
                              space.wrap("substring not found in string.rindex"))
 
-    return space.wrap(res)
+    v = space.wrap(res)
+    return checked_settaint(v, space, merge_taints([w_self, w_sub]))
 
 def _string_replace(space, input, sub, by, maxsplit):
     if maxsplit == 0:
@@ -591,18 +608,21 @@ def _string_replace(space, input, sub, by, maxsplit):
 
     return space.wrap(builder.build())
 
-
 def str_replace__String_ANY_ANY_ANY(space, w_self, w_sub, w_by, w_maxsplit):
-    return _string_replace(space, w_self._value, space.buffer_w(w_sub).as_str(),
-                           space.buffer_w(w_by).as_str(),
-                           space.int_w(w_maxsplit))
+    v = _string_replace(space, w_self._value, space.buffer_w(w_sub).as_str(),
+                        space.buffer_w(w_by).as_str(),
+                        space.int_w(w_maxsplit))
+    return checked_settaint(v, space, merge_taints([w_self, w_sub,
+                                                    w_by, w_maxsplit]))
 
 def str_replace__String_String_String_ANY(space, w_self, w_sub, w_by, w_maxsplit=-1):
     input = w_self._value
     sub = w_sub._value
     by = w_by._value
     maxsplit = space.int_w(w_maxsplit)
-    return _string_replace(space, input, sub, by, maxsplit)
+    v = _string_replace(space, input, sub, by, maxsplit)
+    return checked_settaint(v, space, merge_taints([w_self, w_sub,
+                                                    w_by, w_maxsplit]))
 
 def _strip(space, w_self, w_chars, left, right):
     "internal function called by str_xstrip methods"
@@ -644,25 +664,29 @@ def _strip_none(space, w_self, left, right):
     return sliced(space, u_self, lpos, rpos, w_self)
 
 def str_strip__String_String(space, w_self, w_chars):
-    return _strip(space, w_self, w_chars, left=1, right=1)
+    v = _strip(space, w_self, w_chars, left=1, right=1)
+    return checked_settaint(v, space, merge_taints([w_self, w_chars]))
+
 
 def str_strip__String_None(space, w_self, w_chars):
-    return _strip_none(space, w_self, left=1, right=1)
+    v = _strip_none(space, w_self, left=1, right=1)
+    return checked_settaint(v, space, merge_taints([w_self]))
 
 def str_rstrip__String_String(space, w_self, w_chars):
-    return _strip(space, w_self, w_chars, left=0, right=1)
+    v = _strip(space, w_self, w_chars, left=0, right=1)
+    return checked_settaint(v, space, merge_taints([w_self, w_chars]))
 
 def str_rstrip__String_None(space, w_self, w_chars):
-    return _strip_none(space, w_self, left=0, right=1)
-
+    v =  _strip_none(space, w_self, left=0, right=1)
+    return checked_settaint(v, space, merge_taints([w_self]))
 
 def str_lstrip__String_String(space, w_self, w_chars):
-    return _strip(space, w_self, w_chars, left=1, right=0)
+    v = _strip(space, w_self, w_chars, left=1, right=0)
+    return checked_settaint(v, space, merge_taints([w_self, w_chars]))
 
 def str_lstrip__String_None(space, w_self, w_chars):
-    return _strip_none(space, w_self, left=1, right=0)
-
-
+    v = _strip_none(space, w_self, left=1, right=0)
+    return checked_settaint(v, space, merge_taints([w_self]))
 
 def str_center__String_ANY_ANY(space, w_self, w_arg, w_fillchar):
     u_self = w_self._value
@@ -680,7 +704,8 @@ def str_center__String_ANY_ANY(space, w_self, w_arg, w_fillchar):
     else:
         u_centered = u_self
 
-    return wrapstr(space, u_centered)
+    v = wrapstr(space, u_centered)
+    return checked_settaint(v, space, merge_taints([w_self, w_arg, w_fillchar]))
 
 def str_count__String_String_ANY_ANY(space, w_self, w_arg, w_start, w_end):
     u_self, u_start, u_end = _convert_idx_params(space, w_self, w_start, w_end)
@@ -893,7 +918,8 @@ def getitem__String_Slice(space, w_str, w_slice):
         return sliced(space, s, start, stop, w_str)
     else:
         str = "".join([s[start + i*step] for i in range(sl)])
-    return wrapstr(space, str)
+    v = wrapstr(space, str)
+    return checked_settaint(v, space, merge_taints([w_str]))
 
 def getslice__String_ANY_ANY(space, w_str, w_start, w_stop):
     s = w_str._value
@@ -1008,7 +1034,6 @@ def string_escape_encode(s, quote):
 
     return buf.build()
 
-
 DEFAULT_NOOP_TABLE = ''.join([chr(i) for i in range(256)])
 
 def str_translate__String_ANY_ANY(space, w_string, w_table, w_deletechars=''):
@@ -1042,7 +1067,8 @@ def str_translate__String_ANY_ANY(space, w_string, w_table, w_deletechars=''):
         for char in string:
             if not deletion_table[ord(char)]:
                 buf.append(table[ord(char)])
-    return W_StringObject(buf.build())
+    v = W_StringObject(buf.build())
+    return checked_settaint(v, space, merge_taints([w_string]))
 
 def str_decode__String_ANY_ANY(space, w_string, w_encoding=None, w_errors=None):
     from pypy.objspace.std.unicodetype import _get_encoding_and_errors, \
@@ -1065,17 +1091,20 @@ def mod__String_ANY(space, w_format, w_values):
     return mod_format(space, w_format, w_values, do_unicode=False)
 
 def str_format__String(space, w_string, __args__):
-    return newformat.format_method(space, w_string, __args__, False)
+    v = newformat.format_method(space, w_string, __args__, False)
+    return checked_settaint(v, space, merge_taints([w_string]))
 
 def format__String_ANY(space, w_string, w_format_spec):
     if not space.isinstance_w(w_format_spec, space.w_str):
         w_format_spec = space.str(w_format_spec)
     spec = space.str_w(w_format_spec)
     formatter = newformat.str_formatter(space, spec)
-    return formatter.format_string(w_string._value)
+    v = formatter.format_string(w_string._value)
+    return checked_settaint(v, space, merge_taints([w_string]))
 
 def buffer__String(space, w_string):
-    return space.wrap(StringBuffer(w_string._value))
+    v = space.wrap(StringBuffer(w_string._value))
+    return checked_settaint(v, space, merge_taints([w_string]))
 
 # register all methods
 from pypy.objspace.std import stringtype
