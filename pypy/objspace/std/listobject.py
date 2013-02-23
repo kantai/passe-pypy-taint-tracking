@@ -1256,7 +1256,23 @@ def delslice__List_ANY_ANY(space, w_list, w_start, w_stop):
     w_list.deleteslice(start, 1, stop-start)
 
 def contains__List_ANY(space, w_list, w_obj):
-    return space.wrap(w_list.contains(w_obj))
+    # blanks : hacking in contains tainting?
+    i = 0
+    retval = False
+    taint_match = None
+    while i < w_list.length(): # intentionally always calling len!
+        if space.eq_w(w_list.getitem(i), w_obj):
+            retval = True
+            taint_match = w_list.getitem(i)
+            break
+        i += 1
+    if retval:
+        taint_out = merge_taints([w_obj, taint_match])
+    else:
+        taint_out = merge_taints([w_obj])
+    w_retval = space.wrap(retval)
+    w_retval = checked_settaint(w_retval, space, taint_out)
+    return w_retval
 
 def iter__List(space, w_list):
     from pypy.objspace.std import iterobject
