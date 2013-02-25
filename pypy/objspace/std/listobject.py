@@ -1262,7 +1262,7 @@ def contains__List_ANY(space, w_list, w_obj):
     retval = False
     taint_match = None
     while i < w_list.length(): # intentionally always calling len!
-        w_eq = space.eq(w_list.getitem(i), w_obj):
+        w_eq = space.eq(w_list.getitem(i), w_obj)
         if space.is_true(w_eq):
             retval = True
             taint_match = merge_taints([w_list.getitem(i),
