@@ -8,6 +8,7 @@ from pypy.objspace.std.listtype import get_list_index
 from pypy.objspace.std.sliceobject import W_SliceObject, normalize_simple_slice
 from pypy.objspace.std import slicetype
 from pypy.interpreter import gateway, baseobjspace
+from pypy.interpreter.pyopcode import merge_taints, checked_settaint
 from pypy.interpreter.signature import Signature
 from rpython.rlib.objectmodel import (instantiate, newlist_hint, specialize,
                                    resizelist_hint)
@@ -1261,13 +1262,16 @@ def contains__List_ANY(space, w_list, w_obj):
     retval = False
     taint_match = None
     while i < w_list.length(): # intentionally always calling len!
-        if space.eq_w(w_list.getitem(i), w_obj):
+        w_eq = space.eq(w_list.getitem(i), w_obj):
+        if space.is_true(w_eq):
             retval = True
-            taint_match = w_list.getitem(i)
+            taint_match = merge_taints([w_list.getitem(i),
+                                        w_obj,
+                                        w_eq])
             break
         i += 1
     if retval:
-        taint_out = merge_taints([w_obj, taint_match])
+        taint_out = taint_match
     else:
         taint_out = merge_taints([w_obj])
     w_retval = space.wrap(retval)

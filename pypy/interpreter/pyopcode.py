@@ -40,7 +40,8 @@ def unaryoperation(operationname):
         operation = getattr(self.space, operationname)
         w_1 = self.popvalue()
         w_result = operation(w_1)
-        w_result = checked_settaint(w_result, self.space, w_1.gettaint_unwrapped())
+        taints = merge_taints([w_result, w_1])
+        w_result = checked_settaint(w_result, self.space, taints)
         self.pushvalue(w_result)
     opimpl.unaryop = operationname
 
@@ -53,7 +54,7 @@ def binaryoperation(operationname):
         w_2 = self.popvalue()
         w_1 = self.popvalue()
         w_result = operation(w_1, w_2)
-        taints = merge_taints([w_1, w_2])
+        taints = merge_taints([w_result, w_1, w_2])
         w_result = checked_settaint(w_result, self.space, taints)
         self.pushvalue(w_result)
     opimpl.binop = operationname
@@ -816,7 +817,7 @@ class __extend__(pyframe.PyFrame):
         for i, attr in unrolling_compare_dispatch_table:
             if i == testnum:
                 w_result = getattr(self, attr)(w_1, w_2)
-                taints = merge_taints([w_1, w_2])
+                taints = merge_taints([w_result, w_1, w_2])
                 w_result = checked_settaint(w_result, self.space, taints)
                 break
         else:
@@ -1033,9 +1034,6 @@ class __extend__(pyframe.PyFrame):
                                                           args)
         else:
             w_result = self.space.call_args(w_function, args)
-#        w_args = list(arguments)
-#        w_args.append(w_result)
-#        w_result = checked_settaint(w_result, self.space, merge_taints(w_args))
         self.pushvalue(w_result)
 
     def CALL_FUNCTION(self, oparg, next_instr):
