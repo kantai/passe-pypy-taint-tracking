@@ -39,8 +39,8 @@ want to run without compilation.
 Running without Compilation
 ---------------------------
 
-cd pypy
-python bin/pyinteractive.py
+     cd pypy
+     python bin/pyinteractive.py
 
 This will be slow, and a lot of "C modules" won't work.
 
@@ -49,8 +49,8 @@ Compiling PyPy without JIT
 
 This compiles without JIT but with full optimizations
 
-cd pypy/goal
-python ../../rpython/bin/rpython --opt=2 targetpypystandalone.py
+     cd pypy/goal
+     python ../../rpython/bin/rpython --opt=2 targetpypystandalone.py
 
 Testing it out
 --------------
