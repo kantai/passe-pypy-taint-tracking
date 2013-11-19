@@ -38,6 +38,8 @@ want to run without compilation.
 
 Running without Compilation
 ---------------------------
+You can run pypy in python::
+
 
      cd pypy
      python bin/pyinteractive.py
@@ -47,7 +49,7 @@ This will be slow, and a lot of "C modules" won't work.
 Compiling PyPy without JIT
 --------------------------
 
-This compiles without JIT but with full optimizations
+This compiles without JIT but with full optimizations::
 
      cd pypy/goal
      python ../../rpython/bin/rpython --opt=2 targetpypystandalone.py
@@ -57,7 +59,7 @@ Testing it out
 
 Once you have the pypy prompt, you can test out the tainting code by importing __pypy__.taint (this API is implemented in pypy/modules/__pypy__/interp_taint.py)
 
-so you can test out propagation of data-flows as follows:
+so you can test out propagation of data-flows as follows::
 
    from __pypy__ import taint as t
 
